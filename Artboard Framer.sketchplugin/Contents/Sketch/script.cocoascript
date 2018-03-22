@@ -3,19 +3,17 @@ var pluginName = "Artboard Framer",
 	pluginDescription = "Frame your artboards with a mobile device or desktop browser.",
 	pluginIdentifier = "com.sonburn.sketchplugins.artboard-framer",
 	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
-	frameLibrary;
+	frameLibrary,
+	frameGroup;
 
 var frameAll = function(context) {
-	// Get the frame library
-	frameLibrary = getFrameLibrary(context);
-
 	// Get artboards on current page
 	var artboards = context.document.currentPage().artboards();
 
 	// If artboards are present...
 	if (artboards.count() > 0) {
 		// Frame the artboards
-		createArtboardFrames(context,artboards);
+		createFrames(context,artboards);
 	}
 	// If no artboards are present...
 	else {
@@ -25,9 +23,6 @@ var frameAll = function(context) {
 }
 
 var frameSelected = function(context) {
-	// Get the frame library
-	frameLibrary = getFrameLibrary(context);
-
 	// Filter selections for artboards
 	var predicate = NSPredicate.predicateWithFormat("className == %@","MSArtboardGroup"),
 		selection = context.selection.filteredArrayUsingPredicate(predicate);
@@ -35,7 +30,7 @@ var frameSelected = function(context) {
 	// If artboards are selected...
 	if (selection.count() > 0) {
 		// Frame the artboards
-		createArtboardFrames(context,selection);
+		createFrames(context,selection);
 	}
 	// If no artboards are selected...
 	else {
@@ -69,23 +64,25 @@ function createAlertWindow(context,name,text) {
 	return alertWindow;
 }
 
-function createArtboardFrames(context,artboards) {
-	// Get the frame to use
-	var selectedFrame = getFrameToUse(context);
+function createFrames(context,artboards) {
+	// Set the frame library
+	frameLibrary = getFrameLibrary(context);
+
+	// Set the frame group
+	frameGroup = getFrameGroup(context);
+
+	// Get the frame symbol
+	var frameSymbol = getFrameSymbol(context);
 
 	// If a frame has been selected...
-	if (selectedFrame) {
+	if (frameSymbol) {
 		// Artboard & frame variables
-		var artboardIDs = getValuesForKey(artboards,"objectID"),
-			artboardLoop = artboards.objectEnumerator(),
+		var artboardLoop = artboards.objectEnumerator(),
 			artboard,
-			frameGroup = getFrameGroup(context),
-			frameSymbol = context.document.localSymbolForSymbol_inLibrary(selectedFrame,frameLibrary),
-			frames = frameGroup.layers(),
-			frameLoop = frames.objectEnumerator(),
-			frame,
+			frameSymbol = context.document.localSymbolForSymbol_inLibrary(frameSymbol,frameLibrary),
 			framesAdded = 0,
-			framesUpdated = 0;
+			framesUpdated = 0,
+			framesRemoved = removeFrameOrphans(context);
 
 		// Iterate through the artboards...
 		while (artboard = artboardLoop.nextObject()) {
@@ -96,14 +93,13 @@ function createArtboardFrames(context,artboards) {
 			// If frame does not exist...
 			if (!artboardFrame) {
 				// Create new frame and determine where to insert
-				var artboardFrame = frameSymbol.newSymbolInstance(),
-					insertIndex = (frameGroup.layers().count() == 0) ? 0 : frameGroup.indexOfLayer(frameGroup.lastLayer()) + 1;
+				var artboardFrame = frameSymbol.newSymbolInstance();
 
 				// Link frame to artboard
 				context.command.setValue_forKey_onLayer(artboard.objectID(),"linkedToArtboard",artboardFrame);
 
 				// Insert frame into frame group
-				frameGroup.insertLayer_atIndex(artboardFrame,insertIndex);
+				frameGroup.insertLayer_atIndex(artboardFrame,null);
 
 				// Increment the appropriate frame counter
 				framesAdded++;
@@ -119,35 +115,13 @@ function createArtboardFrames(context,artboards) {
 				// Update the name of the frame instance
 				artboardFrame.setName(frameSymbol.name());
 
-				// Move frame to top of frame group to maintain order
-				artboardFrame.moveToLayer_beforeLayer(frameGroup,nil);
-
-				// Deselect frame after moving
-				artboardFrame.select_byExpandingSelection(false,true);
-
 				// Increment the appropriate frame counter
 				framesUpdated++;
 			}
-
-			// Set the frame coordinates in relation to the artboard
-			artboardFrame.absoluteRect().setX(artboard.frame().x() + context.command.valueForKey_onLayer("offsetX",frameSymbol));
-			artboardFrame.absoluteRect().setY(artboard.frame().y() + context.command.valueForKey_onLayer("offsetY",frameSymbol));
 		}
 
-		// Iterate through the frames...
-		while (frame = frameLoop.nextObject()) {
-			// Get objectID for linked artboard
-			var linkedToArtboard = context.command.valueForKey_onLayer("linkedToArtboard",frame);
-
-			// If artboard is no longer present...
-			if (artboardIDs.indexOf(linkedToArtboard) == -1) {
-				// Remove the frame
-				frame.removeFromParent();
-			}
-		}
-
-		// Resize the frame group to fit contents
-		frameGroup.resizeToFitChildrenWithOption(0);
+		// Update all frame positions
+		updateFramePositions(context,frameGroup);
 
 		// Display feedback
 		context.document.showMessage((framesAdded + framesUpdated) + " artboards have been framed");
@@ -205,14 +179,13 @@ function getFrameGroup(context) {
 
 		frameGroup.setName("Frames");
 		frameGroup.setHasClickThrough(true);
+		frameGroup.frame().setX(0);
+		frameGroup.frame().setY(0);
 
 		context.command.setValue_forKey_onLayer(true,"frameGroup",frameGroup);
 
 		context.document.currentPage().insertLayer_atIndex(frameGroup,0);
 	}
-
-	frameGroup.frame().setX(0);
-	frameGroup.frame().setY(0);
 
 	return frameGroup;
 }
@@ -252,7 +225,7 @@ function getFrameLibrary(context) {
 	return frameLibrary;
 }
 
-function getFrameToUse(context) {
+function getFrameSymbol(context) {
 	// Get the frame symbols & names
 	var predicate = NSPredicate.predicateWithFormat("parentPage.name == %@","Devices"),
 		frameUsedLast = context.command.valueForKey_onLayer("frameUsedLast",context.document.documentData()),
@@ -350,6 +323,26 @@ function openFile(path) {
 	return (file.readFromURL_ofType_error(path,'com.bohemiancoding.sketch.drawing',nil)) ? file : nil;
 }
 
+function removeFrameOrphans(context) {
+	var frames = frameGroup.layers(),
+		framesRemoved = 0;
+
+	if (frames) {
+		for (var i = 0; i < frames.length; i++) {
+			var linkedToArtboard = context.command.valueForKey_onLayer("linkedToArtboard",frames[i]),
+				linkedArtboard = context.document.documentData().artboardWithID(linkedToArtboard);
+
+			if (!linkedArtboard) {
+				frames[i].removeFromParent();
+
+				framesRemoved++;
+			}
+		}
+	}
+
+	return framesRemoved;
+}
+
 function setKeyOrder(alert,order) {
 	for (var i = 0; i < order.length; i++) {
 		var thisItem = order[i],
@@ -359,4 +352,21 @@ function setKeyOrder(alert,order) {
 	}
 
 	alert.alert().window().setInitialFirstResponder(order[0]);
+}
+
+function updateFramePositions(context) {
+	var frames = frameGroup.layers(),
+		frameLoop = frames.objectEnumerator(),
+		frame;
+
+	while (frame = frameLoop.nextObject()) {
+		var frameSymbol = frame.symbolMaster(),
+			linkedToArtboard = context.command.valueForKey_onLayer("linkedToArtboard",frame),
+			linkedArtboard = context.document.documentData().artboardWithID(linkedToArtboard);
+
+		frame.absoluteRect().setX(linkedArtboard.frame().x() + context.command.valueForKey_onLayer("offsetX",frameSymbol));
+		frame.absoluteRect().setY(linkedArtboard.frame().y() + context.command.valueForKey_onLayer("offsetY",frameSymbol));
+	}
+
+	frameGroup.resizeToFitChildrenWithOption(0);
 }

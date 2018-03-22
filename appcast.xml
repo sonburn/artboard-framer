@@ -6,15 +6,15 @@
 		<description>Frame your artboards with a mobile device or desktop browser.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.1</title>
+			<title>Version 0.2</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Initial commit.</li>
+				<li>Fix for using different frame types on the same page.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.1" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.2" />
 		</item>
 	</channel>
 </rss>

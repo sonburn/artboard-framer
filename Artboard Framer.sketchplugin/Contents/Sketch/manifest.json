@@ -27,7 +27,7 @@
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.1",
+	"version" : "0.2",
 	"description" : "Frame your artboards with a mobile device or desktop browser.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",
