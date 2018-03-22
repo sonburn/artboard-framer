@@ -1,0 +1,35 @@
+{
+	"author" : "Jason Burns",
+	"commands" : [
+		{
+			"name" : "Frame All Artboards",
+			"identifier" : "frameAll",
+			"description" : "Frame all artboards with a mobile device or desktop browser.",
+			"script" : "script.cocoascript",
+			"icon" : "icon-sr.png",
+			"handler" : "frameAll"
+		},
+		{
+			"name" : "Frame Selected Artboards",
+			"identifier" : "frameSelected",
+			"description" : "Frame selected artboards with a mobile device or desktop browser.",
+			"script" : "script.cocoascript",
+			"icon" : "icon-sr.png",
+			"handler" : "frameSelected"
+		}
+	],
+	"menu" : {
+		"title" : "Artboard Framer",
+		"isRoot" : false,
+		"items" : [
+			"frameAll",
+			"frameSelected"
+		]
+	},
+	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
+	"version" : "0.1",
+	"description" : "Frame your artboards with a mobile device or desktop browser.",
+	"authorEmail" : "jason.burns@synchronoss.com",
+	"name" : "Artboard Framer",
+	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml"
+}

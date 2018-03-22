@@ -1,0 +1,362 @@
+// Plugin variables
+var pluginName = "Artboard Framer",
+	pluginDescription = "Frame your artboards with a mobile device or desktop browser.",
+	pluginIdentifier = "com.sonburn.sketchplugins.artboard-framer",
+	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
+	frameLibrary;
+
+var frameAll = function(context) {
+	// Get the frame library
+	frameLibrary = getFrameLibrary(context);
+
+	// Get artboards on current page
+	var artboards = context.document.currentPage().artboards();
+
+	// If artboards are present...
+	if (artboards.count() > 0) {
+		// Frame the artboards
+		createArtboardFrames(context,artboards);
+	}
+	// If no artboards are present...
+	else {
+		// Display feedback
+		displayDialog("There are no artboards on the page.",pluginName);
+	}
+}
+
+var frameSelected = function(context) {
+	// Get the frame library
+	frameLibrary = getFrameLibrary(context);
+
+	// Filter selections for artboards
+	var predicate = NSPredicate.predicateWithFormat("className == %@","MSArtboardGroup"),
+		selection = context.selection.filteredArrayUsingPredicate(predicate);
+
+	// If artboards are selected...
+	if (selection.count() > 0) {
+		// Frame the artboards
+		createArtboardFrames(context,selection);
+	}
+	// If no artboards are selected...
+	else {
+		// Display feedback
+		displayDialog("Select at least one artboard.",pluginName);
+	}
+}
+
+function actionWithType(context,type) {
+	var controller = context.document.actionsController();
+
+	if (controller.actionWithName) {
+		return controller.actionWithName(type);
+	} else if (controller.actionWithID) {
+		return controller.actionWithID(type);
+	} else {
+		return controller.actionForID(type);
+	}
+}
+
+function createAlertWindow(context,name,text) {
+	var alertWindow = COSAlertWindow.new();
+
+	var iconPath = context.plugin.urlForResourceNamed("icon.png").path(),
+		icon = NSImage.alloc().initByReferencingFile(iconPath);
+
+	alertWindow.setIcon(icon);
+	alertWindow.setMessageText(name);
+	alertWindow.setInformativeText(text);
+
+	return alertWindow;
+}
+
+function createArtboardFrames(context,artboards) {
+	// Get the frame to use
+	var selectedFrame = getFrameToUse(context);
+
+	// If a frame has been selected...
+	if (selectedFrame) {
+		// Artboard & frame variables
+		var artboardIDs = getValuesForKey(artboards,"objectID"),
+			artboardLoop = artboards.objectEnumerator(),
+			artboard,
+			frameGroup = getFrameGroup(context),
+			frameSymbol = context.document.localSymbolForSymbol_inLibrary(selectedFrame,frameLibrary),
+			frames = frameGroup.layers(),
+			frameLoop = frames.objectEnumerator(),
+			frame,
+			framesAdded = 0,
+			framesUpdated = 0;
+
+		// Iterate through the artboards...
+		while (artboard = artboardLoop.nextObject()) {
+			// Check for existing frame for the artboard
+			var predicate = NSPredicate.predicateWithFormat("userInfo != nil && function(userInfo,'valueForKeyPath:',%@).linkedToArtboard == %@",pluginIdentifier,artboard.objectID()),
+				artboardFrame = frameGroup.layers().filteredArrayUsingPredicate(predicate).firstObject();
+
+			// If frame does not exist...
+			if (!artboardFrame) {
+				// Create new frame and determine where to insert
+				var artboardFrame = frameSymbol.newSymbolInstance(),
+					insertIndex = (frameGroup.layers().count() == 0) ? 0 : frameGroup.indexOfLayer(frameGroup.lastLayer()) + 1;
+
+				// Link frame to artboard
+				context.command.setValue_forKey_onLayer(artboard.objectID(),"linkedToArtboard",artboardFrame);
+
+				// Insert frame into frame group
+				frameGroup.insertLayer_atIndex(artboardFrame,insertIndex);
+
+				// Increment the appropriate frame counter
+				framesAdded++;
+			}
+			// If frame exists...
+			else {
+				// Change the existing frame
+				artboardFrame.changeInstanceToSymbol(frameSymbol);
+
+				// Resize the frame to the new master
+				artboardFrame.resetSizeToMaster();
+
+				// Update the name of the frame instance
+				artboardFrame.setName(frameSymbol.name());
+
+				// Move frame to top of frame group to maintain order
+				artboardFrame.moveToLayer_beforeLayer(frameGroup,nil);
+
+				// Deselect frame after moving
+				artboardFrame.select_byExpandingSelection(false,true);
+
+				// Increment the appropriate frame counter
+				framesUpdated++;
+			}
+
+			// Set the frame coordinates in relation to the artboard
+			artboardFrame.absoluteRect().setX(artboard.frame().x() + context.command.valueForKey_onLayer("offsetX",frameSymbol));
+			artboardFrame.absoluteRect().setY(artboard.frame().y() + context.command.valueForKey_onLayer("offsetY",frameSymbol));
+		}
+
+		// Iterate through the frames...
+		while (frame = frameLoop.nextObject()) {
+			// Get objectID for linked artboard
+			var linkedToArtboard = context.command.valueForKey_onLayer("linkedToArtboard",frame);
+
+			// If artboard is no longer present...
+			if (artboardIDs.indexOf(linkedToArtboard) == -1) {
+				// Remove the frame
+				frame.removeFromParent();
+			}
+		}
+
+		// Resize the frame group to fit contents
+		frameGroup.resizeToFitChildrenWithOption(0);
+
+		// Display feedback
+		context.document.showMessage((framesAdded + framesUpdated) + " artboards have been framed");
+	}
+}
+
+function createCheckbox(item,state,frame) {
+	var checkbox = NSButton.alloc().initWithFrame(frame),
+		state = (state == false) ? NSOffState : NSOnState;
+
+	checkbox.setButtonType(NSSwitchButton);
+	checkbox.setBezelStyle(0);
+	checkbox.setTitle(item.name);
+	checkbox.setTag(item.value);
+	checkbox.setState(state);
+
+	return checkbox;
+}
+
+function createSelect(items,selected,frame) {
+	var comboBox = NSComboBox.alloc().initWithFrame(frame),
+		selected = (selected > -1) ? selected : 0;
+
+	comboBox.addItemsWithObjectValues(items);
+	comboBox.selectItemAtIndex(selected);
+	comboBox.setNumberOfVisibleItems(16);
+	comboBox.setCompletes(1);
+
+	return comboBox;
+}
+
+function displayDialog(message,title) {
+	NSApplication.sharedApplication().displayDialog_withTitle(message,title);
+}
+
+function getCachedSettings(context,location,settings) {
+	try {
+		for (i in settings) {
+			var value = context.command.valueForKey_onLayer(i,location);
+			if (value) settings[i] = value;
+		}
+
+		return settings;
+	} catch(err) {
+		log("Unable to fetch settings");
+	}
+}
+
+function getFrameGroup(context) {
+	var predicate = NSPredicate.predicateWithFormat("userInfo != nil && function(userInfo,'valueForKeyPath:',%@).frameGroup == true",pluginIdentifier),
+		frameGroup = context.document.currentPage().children().filteredArrayUsingPredicate(predicate).firstObject();
+
+	if (!frameGroup) {
+		var frameGroup = MSLayerGroup.new();
+
+		frameGroup.setName("Frames");
+		frameGroup.setHasClickThrough(true);
+
+		context.command.setValue_forKey_onLayer(true,"frameGroup",frameGroup);
+
+		context.document.currentPage().insertLayer_atIndex(frameGroup,0);
+	}
+
+	frameGroup.frame().setX(0);
+	frameGroup.frame().setY(0);
+
+	return frameGroup;
+}
+
+function getFrameLibrary(context) {
+	// Get the frame library
+	var predicate = NSPredicate.predicateWithFormat("libraryID == %@",frameLibraryID),
+		frameLibrary = AppController.sharedInstance().librariesController().libraries().filteredArrayUsingPredicate(predicate).firstObject(),
+		frameLibraryName = "Artboard Framer.sketch",
+		frameLibraryPath = context.plugin.urlForResourceNamed(frameLibraryName).path();
+
+	// If the frame library exists and it's disabled...
+	if (frameLibrary && frameLibrary.enabled() == 0) {
+		// Enable the frame library
+		frameLibrary.setEnabled(1);
+	}
+
+	// If the frame library does not exist...
+	if (!frameLibrary) {
+		// Get file URL of frame library in plugin bundle
+		var fileURLWithPath = NSURL.fileURLWithPath(frameLibraryPath);
+
+		// Add the frame library to Sketch
+		NSApp.delegate().librariesController().addAssetLibraryAtURL(fileURLWithPath);
+
+		// Alert Sketch of library change
+		AppController.sharedInstance().librariesController().notifyLibraryChange(null);
+
+		// Display feedback
+		context.document.showMessage("Artboard Framer library installed");
+
+		// Get the frame library
+		frameLibrary = AppController.sharedInstance().librariesController().libraries().filteredArrayUsingPredicate(predicate).firstObject();
+	}
+
+	// Return the frame library
+	return frameLibrary;
+}
+
+function getFrameToUse(context) {
+	// Get the frame symbols & names
+	var predicate = NSPredicate.predicateWithFormat("parentPage.name == %@","Devices"),
+		frameUsedLast = context.command.valueForKey_onLayer("frameUsedLast",context.document.documentData()),
+		frameSymbols = getLibrarySymbols(context,frameLibrary).filteredArrayUsingPredicate(predicate),
+		frameSymbolNames = getValuesForKey(frameSymbols,"name"),
+		frameSymbolSelect = (frameUsedLast) ? frameSymbols.indexOfObject(getObjectByID(frameSymbols,frameUsedLast)) : 0;
+
+	// Default settings
+	var defaultSettings = {};
+	defaultSettings.artboardShadowState = 1;
+
+	// Update default settings with cached settings
+	defaultSettings = getCachedSettings(context,context.document.documentData(),defaultSettings,pluginIdentifier);
+
+	// Create the alert window
+	var alertWindow = createAlertWindow(context,pluginName,pluginDescription);
+
+	// Create the frame select, and add to alert window
+	var frameSelect = createSelect(frameSymbolNames,frameSymbolSelect,NSMakeRect(0,0,300,28));
+	alertWindow.addAccessoryView(frameSelect);
+
+	// Create the artboard shadow toggle, and add to alert window
+	var shadowToggle = createCheckbox({name:"Disable artboard shadows",value:1},defaultSettings.artboardShadowState,NSMakeRect(0,0,300,18));
+	alertWindow.addAccessoryView(shadowToggle);
+
+	// Buttons for alert window
+	var okButton = alertWindow.addButtonWithTitle("OK");
+	var cancelButton = alertWindow.addButtonWithTitle("Cancel");
+
+	// Set key order
+	setKeyOrder(alertWindow,[
+		frameSelect,
+		shadowToggle,
+		okButton
+	]);
+
+	// Display the alert window and capture the response
+	var alertResponse = alertWindow.runModal();
+
+	// If user tapped OK button...
+	if (alertResponse == 1000) {
+		// Get current artboard shadow setting
+		var showArtboardShadow = NSUserDefaults.standardUserDefaults().boolForKey("showArtboardShadow");
+
+		// If the current setting and shadowToggle checkbox state conflict...
+		if (shadowToggle.state() == 1 && showArtboardShadow == 1 || shadowToggle.state() == 0 && showArtboardShadow == 0) {
+			// Toggle the artboard shadows
+			actionWithType(context,"MSToggleArtboardShadowAction").toggleArtboardShadow(null);
+		}
+
+		// Remember the selections for future use
+		context.command.setValue_forKey_onLayer(frameSymbols[frameSelect.indexOfSelectedItem()].objectID(),"frameUsedLast",context.document.documentData());
+		context.command.setValue_forKey_onLayer(shadowToggle.state(),"artboardShadowState",context.document.documentData());
+
+		// Return the selected frame
+		return frameSymbols[frameSelect.indexOfSelectedItem()];
+	} else return false;
+}
+
+function getLibrarySymbols(context,library) {
+	var libraryPath = library.locationOnDisk().path(),
+		libraryFile = openFile(libraryPath),
+		librarySymbols = libraryFile.documentData().allSymbols(),
+		libraryID = libraryFile.documentData().objectID();
+
+	libraryFile.close();
+
+	var sortByName = NSSortDescriptor.sortDescriptorWithKey_ascending("name",1),
+		librarySymbols = librarySymbols.sortedArrayUsingDescriptors([sortByName]);
+
+	return librarySymbols;
+}
+
+function getObjectByID(source,objectID) {
+	var predicate = NSPredicate.predicateWithFormat("objectID == %@",objectID);
+
+	return source.filteredArrayUsingPredicate(predicate).firstObject();
+}
+
+function getValuesForKey(source,key) {
+	var array = NSMutableArray.array(),
+		loop = source.objectEnumerator(),
+		object;
+
+	while (object = loop.nextObject()) {
+		array.push(object[key]());
+	}
+
+	return array;
+}
+
+function openFile(path) {
+	var file = MSDocument.new();
+
+	return (file.readFromURL_ofType_error(path,'com.bohemiancoding.sketch.drawing',nil)) ? file : nil;
+}
+
+function setKeyOrder(alert,order) {
+	for (var i = 0; i < order.length; i++) {
+		var thisItem = order[i],
+			nextItem = order[i+1];
+
+		if (nextItem) thisItem.setNextKeyView(nextItem);
+	}
+
+	alert.alert().window().setInitialFirstResponder(order[0]);
+}
