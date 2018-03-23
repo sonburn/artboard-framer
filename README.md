@@ -4,6 +4,8 @@ Frame your artboards with a mobile device or desktop browser.
 
 ![Artboard Framer](https://raw.githubusercontent.com/sonburn/artboard-framer/master/Screenshots/Artboard%20Framer.png)
 
+[![Artboard Framer Demonstration](https://img.youtube.com/vi/e-USy4qAxCw/0.jpg)](https://www.youtube.com/watch?v=e-USy4qAxCw)
+
 <a href="http://bit.ly/SketchRunnerWebsite">
 	<img width="160" height="41" src="http://bit.ly/RunnerBadgeBlue" alt="runner-badge-blue">
 </a>
