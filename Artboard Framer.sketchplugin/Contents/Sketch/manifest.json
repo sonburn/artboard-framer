@@ -27,7 +27,7 @@
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.3",
+	"version" : "0.4",
 	"description" : "Frame your artboards with a device image or wireframe.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",

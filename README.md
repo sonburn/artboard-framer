@@ -39,9 +39,18 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.4** - Added some tablet devices and iPhone SE, and improved device selection & information in plugin dialog.
 * **0.3** - Added new devices for iPhone Plus and Sony TV.
 * **0.2** - Fix for using different frame types on the same page.
 * **0.1** - Initial commit.
+
+# To-Do
+
+* Add functionality to wrap frames in slice for exporting.
+* Add landscape mode phone and tablet devices.
+* Add watch devices.
+* Add web devices.
+* Pre-select type for artboard size(s).
 
 # Contact
 

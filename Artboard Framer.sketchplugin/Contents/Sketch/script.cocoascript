@@ -1,3 +1,5 @@
+@import "MochaJSDelegate.js";
+
 // Plugin variables
 var pluginName = "Artboard Framer",
 	pluginDescription = "Frame your artboards with a device image or wireframe.",
@@ -68,14 +70,14 @@ function createFrames(context,artboards) {
 	// Set the frame library
 	frameLibrary = getFrameLibrary(context);
 
-	// Set the frame group
-	frameGroup = getFrameGroup(context);
-
 	// Get the frame symbol
 	var frameSymbol = getFrameSymbol(context);
 
 	// If a frame has been selected...
 	if (frameSymbol) {
+		// Set the frame group
+		frameGroup = getFrameGroup(context);
+
 		// Artboard & frame variables
 		var artboardLoop = artboards.objectEnumerator(),
 			artboard,
@@ -227,11 +229,15 @@ function getFrameLibrary(context) {
 
 function getFrameSymbol(context) {
 	// Get the frame symbols & names
-	var predicate = NSPredicate.predicateWithFormat("parentPage.name == %@","Devices"),
+	var librarySymbols = getLibrarySymbols(context,frameLibrary),
 		frameUsedLast = context.command.valueForKey_onLayer("frameUsedLast",context.document.documentData()),
-		frameSymbols = getLibrarySymbols(context,frameLibrary).filteredArrayUsingPredicate(predicate),
+		frameSymbol = (frameUsedLast) ? getObjectByID(librarySymbols,frameUsedLast) : null,
+		typeNames = ["Displays","Phones","Tablets"],
+		typeNameSelect = (frameUsedLast) ? typeNames.indexOf(String(frameSymbol.parentPage().name())) : 1,
+		predicate = NSPredicate.predicateWithFormat("parentPage.name == %@",typeNames[typeNameSelect]),
+		frameSymbols = librarySymbols.filteredArrayUsingPredicate(predicate),
 		frameSymbolNames = getValuesForKey(frameSymbols,"name"),
-		frameSymbolSelect = (frameUsedLast) ? frameSymbols.indexOfObject(getObjectByID(frameSymbols,frameUsedLast)) : 0;
+		frameSymbolSelect = (frameUsedLast) ? frameSymbols.indexOfObject(frameSymbol) : 0;
 
 	// Default settings
 	var defaultSettings = {};
@@ -242,6 +248,29 @@ function getFrameSymbol(context) {
 
 	// Create the alert window
 	var alertWindow = createAlertWindow(context,pluginName,pluginDescription);
+
+	// Create the type select, and add to alert window
+	var typeSelect = createSelect(typeNames,typeNameSelect,NSMakeRect(0,0,300,28));
+	alertWindow.addAccessoryView(typeSelect);
+
+	// Create the type select delegate
+	var typeSelectDelegate = new MochaJSDelegate({
+		"comboBoxSelectionDidChange:" : (function(sender) {
+			// Get the frame symbols & names
+			var selectedType = sender.object().objectValueOfSelectedItem();
+			predicate = NSPredicate.predicateWithFormat("parentPage.name == %@",selectedType);
+			frameSymbols = getLibrarySymbols(context,frameLibrary).filteredArrayUsingPredicate(predicate);
+			frameSymbolNames = getValuesForKey(frameSymbols,"name");
+
+			// Empty and populate the type select
+			frameSelect.removeAllItems();
+			frameSelect.addItemsWithObjectValues(frameSymbolNames);
+			frameSelect.selectItemAtIndex(0);
+		})
+	});
+
+	// Append the delegate to the type select
+	typeSelect.setDelegate(typeSelectDelegate.getClassInstance());
 
 	// Create the frame select, and add to alert window
 	var frameSelect = createSelect(frameSymbolNames,frameSymbolSelect,NSMakeRect(0,0,300,28));
@@ -257,6 +286,7 @@ function getFrameSymbol(context) {
 
 	// Set key order
 	setKeyOrder(alertWindow,[
+		typeSelect,
 		frameSelect,
 		shadowToggle,
 		okButton
