@@ -4,7 +4,7 @@
 		{
 			"name" : "Frame All Artboards",
 			"identifier" : "frameAll",
-			"description" : "Frame all artboards with a mobile device or desktop browser.",
+			"description" : "Frame all artboards with a device image or wireframe.",
 			"script" : "script.cocoascript",
 			"icon" : "icon-sr.png",
 			"handler" : "frameAll"
@@ -12,7 +12,7 @@
 		{
 			"name" : "Frame Selected Artboards",
 			"identifier" : "frameSelected",
-			"description" : "Frame selected artboards with a mobile device or desktop browser.",
+			"description" : "Frame selected artboards with a device image or wireframe.",
 			"script" : "script.cocoascript",
 			"icon" : "icon-sr.png",
 			"handler" : "frameSelected"
@@ -27,8 +27,8 @@
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.2",
-	"description" : "Frame your artboards with a mobile device or desktop browser.",
+	"version" : "0.3",
+	"description" : "Frame your artboards with a device image or wireframe.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",
 	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml"

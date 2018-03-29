@@ -1,6 +1,6 @@
 ![Artboard Framer](https://raw.githubusercontent.com/sonburn/artboard-framer/master/logo.png)
 
-Frame your artboards with a mobile device or desktop browser.
+Frame your artboards with a device image or wireframe.
 
 ![Artboard Framer](https://raw.githubusercontent.com/sonburn/artboard-framer/master/Screenshots/Artboard%20Framer.png)
 
@@ -39,6 +39,7 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.3** - Added new devices for iPhone Plus and Sony TV.
 * **0.2** - Fix for using different frame types on the same page.
 * **0.1** - Initial commit.
 

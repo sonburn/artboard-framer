@@ -3,18 +3,18 @@
 	<channel>
 		<title>Artboard Framer</title>
 		<link>http://sparkle-project.org/files/sparkletestcast.xml</link>
-		<description>Frame your artboards with a mobile device or desktop browser.</description>
+		<description>Frame your artboards with a device image or wireframe.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.2</title>
+			<title>Version 0.3</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Fix for using different frame types on the same page.</li>
+				<li>Added new devices for iPhone Plus and Sony TV.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.2" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.3" />
 		</item>
 	</channel>
 </rss>

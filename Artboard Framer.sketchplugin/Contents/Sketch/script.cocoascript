@@ -1,6 +1,6 @@
 // Plugin variables
 var pluginName = "Artboard Framer",
-	pluginDescription = "Frame your artboards with a mobile device or desktop browser.",
+	pluginDescription = "Frame your artboards with a device image or wireframe.",
 	pluginIdentifier = "com.sonburn.sketchplugins.artboard-framer",
 	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
 	frameLibrary,
