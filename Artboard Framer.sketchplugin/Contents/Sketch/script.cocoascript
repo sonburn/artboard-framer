@@ -70,8 +70,9 @@ function createFrames(context,artboards) {
 	// Set the frame library
 	frameLibrary = getFrameLibrary(context);
 
-	// Get the frame symbol
-	var frameSymbol = getFrameSymbol(context);
+	// Get the frame settings
+	var frameSettings = getFrameSettings(context),
+		frameSymbol = frameSettings.frame;
 
 	// If a frame has been selected...
 	if (frameSymbol) {
@@ -124,6 +125,36 @@ function createFrames(context,artboards) {
 
 		// Update all frame positions
 		updateFramePositions(context,frameGroup);
+
+		// If user wants a frame slice
+		if (frameSettings.slice) {
+			// Frame slice variables
+			var predicate = NSPredicate.predicateWithFormat("userInfo != nil && function(userInfo,'valueForKeyPath:',%@).frameSlice == true",pluginIdentifier),
+				frameSlice = context.document.currentPage().children().filteredArrayUsingPredicate(predicate).firstObject(),
+				frameSlicePad = 200;
+
+			// If frame slice does not exist...
+			if (!frameSlice) {
+				// Create the slice
+				var sliceLayer = MSSliceLayer.new();
+				sliceLayer.setName("Artboard Framer");
+
+				// Designate the slice as the frameSlice
+				context.command.setValue_forKey_onLayer(true,"frameSlice",sliceLayer);
+
+				// Insert slice into frame group
+				frameGroup.insertLayer_atIndex(sliceLayer,0);
+			}
+
+			// Set the frame slice location and dimensions
+			sliceLayer.frame().setX(0 - frameSlicePad);
+			sliceLayer.frame().setY(0 - frameSlicePad);
+			sliceLayer.frame().setWidth(frameGroup.frame().width() + frameSlicePad * 2);
+			sliceLayer.frame().setHeight(frameGroup.frame().height() + frameSlicePad * 2);
+
+			// Resize the frame group
+			frameGroup.resizeToFitChildrenWithOption(0);
+		}
 
 		// Display feedback
 		context.document.showMessage((framesAdded + framesUpdated) + " artboards have been framed");
@@ -227,7 +258,7 @@ function getFrameLibrary(context) {
 	return frameLibrary;
 }
 
-function getFrameSymbol(context) {
+function getFrameSettings(context) {
 	// Get the frame symbols & names
 	var librarySymbols = getLibrarySymbols(context,frameLibrary),
 		frameUsedLast = context.command.valueForKey_onLayer("frameUsedLast",context.document.documentData()),
@@ -242,6 +273,7 @@ function getFrameSymbol(context) {
 	// Default settings
 	var defaultSettings = {};
 	defaultSettings.artboardShadowState = 1;
+	defaultSettings.frameSliceState = 0;
 
 	// Update default settings with cached settings
 	defaultSettings = getCachedSettings(context,context.document.documentData(),defaultSettings,pluginIdentifier);
@@ -276,9 +308,13 @@ function getFrameSymbol(context) {
 	var frameSelect = createSelect(frameSymbolNames,frameSymbolSelect,NSMakeRect(0,0,300,28));
 	alertWindow.addAccessoryView(frameSelect);
 
-	// Create the artboard shadow toggle, and add to alert window
+	// Create the artboard shadow checkbox, and add to alert window
 	var shadowToggle = createCheckbox({name:"Disable artboard shadows",value:1},defaultSettings.artboardShadowState,NSMakeRect(0,0,300,18));
 	alertWindow.addAccessoryView(shadowToggle);
+
+	// Create the slice checkbox, and add to alert window
+	var frameSlice = createCheckbox({name:"Create slice around frames",value:1},defaultSettings.frameSliceState,NSMakeRect(0,0,300,18));
+	alertWindow.addAccessoryView(frameSlice);
 
 	// Buttons for alert window
 	var okButton = alertWindow.addButtonWithTitle("OK");
@@ -289,6 +325,7 @@ function getFrameSymbol(context) {
 		typeSelect,
 		frameSelect,
 		shadowToggle,
+		frameSlice,
 		okButton
 	]);
 
@@ -309,9 +346,13 @@ function getFrameSymbol(context) {
 		// Remember the selections for future use
 		context.command.setValue_forKey_onLayer(frameSymbols[frameSelect.indexOfSelectedItem()].objectID(),"frameUsedLast",context.document.documentData());
 		context.command.setValue_forKey_onLayer(shadowToggle.state(),"artboardShadowState",context.document.documentData());
+		context.command.setValue_forKey_onLayer(frameSlice.state(),"frameSliceState",context.document.documentData());
 
 		// Return the selected frame
-		return frameSymbols[frameSelect.indexOfSelectedItem()];
+		return {
+			frame : frameSymbols[frameSelect.indexOfSelectedItem()],
+			slice : frameSlice.state()
+		};
 	} else return false;
 }
 
