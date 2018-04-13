@@ -16,6 +16,18 @@
 			"script" : "script.cocoascript",
 			"icon" : "icon-sr.png",
 			"handler" : "frameSelected"
+		},
+		{
+			"name": "Website",
+			"identifier": "website",
+			"script" : "script.cocoascript",
+			"handler": "website"
+		},
+		{
+			"name": "Donate",
+			"identifier": "donate",
+			"script" : "script.cocoascript",
+			"handler": "donate"
 		}
 	],
 	"menu" : {
@@ -23,11 +35,14 @@
 		"isRoot" : false,
 		"items" : [
 			"frameAll",
-			"frameSelected"
+			"frameSelected",
+			"-",
+			"website",
+			"donate"
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.5",
+	"version" : "0.6",
 	"description" : "Frame your artboards with a device image or wireframe.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",

@@ -39,6 +39,7 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.6** - Added iPhone X and Samsung Galaxy S8.
 * **0.5** - Added functionality to create a slice around artboard frames.
 * **0.4** - Added some tablet devices and iPhone SE, and improved device selection & information in plugin dialog.
 * **0.3** - Added new devices for iPhone Plus and Sony TV.
