@@ -18,10 +18,10 @@
 			"handler" : "frameSelected"
 		},
 		{
-			"name": "Website",
-			"identifier": "website",
+			"name": "Request Frame/Report Issue",
+			"identifier": "report",
 			"script" : "script.cocoascript",
-			"handler": "website"
+			"handler": "report"
 		},
 		{
 			"name": "Donate",
@@ -37,12 +37,12 @@
 			"frameAll",
 			"frameSelected",
 			"-",
-			"website",
+			"report",
 			"donate"
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.6",
+	"version" : "0.7",
 	"description" : "Frame your artboards with a device image or wireframe.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",

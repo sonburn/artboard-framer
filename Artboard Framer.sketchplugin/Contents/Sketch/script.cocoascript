@@ -6,7 +6,8 @@ var pluginName = "Artboard Framer",
 	pluginIdentifier = "com.sonburn.sketchplugins.artboard-framer",
 	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
 	frameLibrary,
-	frameGroup;
+	frameGroup,
+	debugMode = false;
 
 var frameAll = function(context) {
 	// Get artboards on current page
@@ -17,7 +18,7 @@ var frameAll = function(context) {
 		// Frame the artboards
 		createFrames(context,artboards);
 
-		ga(context,"frameAll","run");
+		if (!debugMode) googleAnalytics(context,"frameAll","run");
 	}
 	// If no artboards are present...
 	else {
@@ -36,7 +37,7 @@ var frameSelected = function(context) {
 		// Frame the artboards
 		createFrames(context,selection);
 
-		ga(context,"frameSelected","run");
+		if (!debugMode) googleAnalytics(context,"frameSelected","run");
 	}
 	// If no artboards are selected...
 	else {
@@ -45,14 +46,14 @@ var frameSelected = function(context) {
 	}
 }
 
-var website = function(context) {
-	openUrlInBrowser("https://github.com/sonburn/artboard-framer");
-	ga(context,"website","website");
+var report = function(context) {
+	openUrl("https://github.com/sonburn/artboard-framer/issues/new");
+	if (!debugMode) googleAnalytics(context,"report","report");
 };
 
 var donate = function(context) {
-	openUrlInBrowser("https://www.paypal.me/sonburn");
-	ga(context,"donate","donate");
+	openUrl("https://www.paypal.me/sonburn");
+	if (!debugMode) googleAnalytics(context,"donate","donate");
 };
 
 function actionWithType(context,type) {
@@ -99,7 +100,7 @@ function createFrames(context,artboards) {
 			frameSymbol = context.document.localSymbolForSymbol_inLibrary(frameSymbol,frameLibrary),
 			framesAdded = 0,
 			framesUpdated = 0,
-			framesRemoved = removeFrameOrphans(context);
+			framesRemoved = removeOrphans(context);
 
 		// Iterate through the artboards...
 		while (artboard = artboardLoop.nextObject()) {
@@ -138,7 +139,7 @@ function createFrames(context,artboards) {
 		}
 
 		// Update all frame positions
-		updateFramePositions(context,frameGroup);
+		updateFrames(context,frameGroup);
 
 		// If user wants a frame slice
 		if (frameSettings.slice) {
@@ -204,19 +205,6 @@ function displayDialog(message,title) {
 	NSApplication.sharedApplication().displayDialog_withTitle(message,title);
 }
 
-function getCachedSettings(context,location,settings) {
-	try {
-		for (i in settings) {
-			var value = context.command.valueForKey_onLayer(i,location);
-			if (value) settings[i] = value;
-		}
-
-		return settings;
-	} catch(err) {
-		log("Unable to fetch settings");
-	}
-}
-
 function getFrameGroup(context) {
 	var predicate = NSPredicate.predicateWithFormat("userInfo != nil && function(userInfo,'valueForKeyPath:',%@).frameGroup == true",pluginIdentifier),
 		frameGroup = context.document.currentPage().children().filteredArrayUsingPredicate(predicate).firstObject();
@@ -274,14 +262,14 @@ function getFrameLibrary(context) {
 
 function getFrameSettings(context) {
 	// Get the frame symbols & names
-	var librarySymbols = getLibrarySymbols(context,frameLibrary),
+	var libraryData = getLibraryData(context,frameLibrary),
 		frameUsedLast = context.command.valueForKey_onLayer("frameUsedLast",context.document.documentData()),
-		frameSymbol = (frameUsedLast) ? getObjectByID(librarySymbols,frameUsedLast) : null,
-		typeNames = ["Displays","Phones","Tablets"],
-		typeNameSelect = (frameUsedLast) ? typeNames.indexOf(String(frameSymbol.parentPage().name())) : 1,
+		frameSymbol = (frameUsedLast) ? getObjectByID(libraryData.librarySymbols,frameUsedLast) : null,
+		typeNames = libraryData.libraryPages.valueForKey("name"),
+		typeNameSelect = (frameUsedLast) ? typeNames.indexOfObject(String(frameSymbol.parentPage().name())) : 0,
 		predicate = NSPredicate.predicateWithFormat("parentPage.name == %@",typeNames[typeNameSelect]),
-		frameSymbols = librarySymbols.filteredArrayUsingPredicate(predicate),
-		frameSymbolNames = getValuesForKey(frameSymbols,"name"),
+		frameSymbols = libraryData.librarySymbols.filteredArrayUsingPredicate(predicate),
+		frameSymbolNames = (frameSymbols) ? frameSymbols.valueForKey("name") : ["No frames of this type"],
 		frameSymbolSelect = (frameUsedLast) ? frameSymbols.indexOfObject(frameSymbol) : 0;
 
 	// Default settings
@@ -290,7 +278,7 @@ function getFrameSettings(context) {
 	defaultSettings.frameSliceState = 0;
 
 	// Update default settings with cached settings
-	defaultSettings = getCachedSettings(context,context.document.documentData(),defaultSettings,pluginIdentifier);
+	defaultSettings = getSettings(context,context.document.documentData(),defaultSettings,pluginIdentifier);
 
 	// Create the alert window
 	var alertWindow = createAlertWindow(context,pluginName,pluginDescription);
@@ -305,13 +293,26 @@ function getFrameSettings(context) {
 			// Get the frame symbols & names
 			var selectedType = sender.object().objectValueOfSelectedItem();
 			predicate = NSPredicate.predicateWithFormat("parentPage.name == %@",selectedType);
-			frameSymbols = getLibrarySymbols(context,frameLibrary).filteredArrayUsingPredicate(predicate);
-			frameSymbolNames = getValuesForKey(frameSymbols,"name");
+			frameSymbols = libraryData.librarySymbols.filteredArrayUsingPredicate(predicate);
+			frameSymbolNames = frameSymbols.valueForKey("name");
 
 			// Empty and populate the type select
 			frameSelect.removeAllItems();
 			frameSelect.addItemsWithObjectValues(frameSymbolNames);
 			frameSelect.selectItemAtIndex(0);
+
+			// If there are frame symbols...
+			if (frameSymbols) {
+				// Disable form elements
+				frameSelect.setEnabled(1);
+				buttonOK.setEnabled(1);
+			}
+			// If there are no frame symbols...
+			else {
+				// Enable form elements
+				frameSelect.setEnabled(0);
+				buttonOK.setEnabled(0);
+			}
 		})
 	});
 
@@ -331,8 +332,15 @@ function getFrameSettings(context) {
 	alertWindow.addAccessoryView(frameSlice);
 
 	// Buttons for alert window
-	var okButton = alertWindow.addButtonWithTitle("OK");
-	var cancelButton = alertWindow.addButtonWithTitle("Cancel");
+	var buttonOK = alertWindow.addButtonWithTitle("OK");
+	var buttonCancel = alertWindow.addButtonWithTitle("Cancel");
+
+	// If there are no frame symbols...
+	if (!frameSymbols) {
+		// Disable form elements
+		frameSelect.setEnabled(0);
+		buttonOK.setEnabled(0);
+	}
 
 	// Set key order
 	setKeyOrder(alertWindow,[
@@ -340,7 +348,7 @@ function getFrameSettings(context) {
 		frameSelect,
 		shadowToggle,
 		frameSlice,
-		okButton
+		buttonOK
 	]);
 
 	// Display the alert window and capture the response
@@ -370,18 +378,21 @@ function getFrameSettings(context) {
 	} else return false;
 }
 
-function getLibrarySymbols(context,library) {
+function getLibraryData(context,library) {
 	var libraryPath = library.locationOnDisk().path(),
 		libraryFile = openFile(libraryPath),
+		libraryPages = libraryFile.documentData().pages(),
 		librarySymbols = libraryFile.documentData().allSymbols(),
-		libraryID = libraryFile.documentData().objectID();
+		librarySymbolSort = NSSortDescriptor.sortDescriptorWithKey_ascending("name",1);
 
 	libraryFile.close();
 
-	var sortByName = NSSortDescriptor.sortDescriptorWithKey_ascending("name",1),
-		librarySymbols = librarySymbols.sortedArrayUsingDescriptors([sortByName]);
+	libraryPages.removeObjectAtIndex(0);
 
-	return librarySymbols;
+	return {
+		libraryPages : libraryPages,
+		librarySymbols : librarySymbols.sortedArrayUsingDescriptors([librarySymbolSort])
+	}
 }
 
 function getObjectByID(source,objectID) {
@@ -390,16 +401,61 @@ function getObjectByID(source,objectID) {
 	return source.filteredArrayUsingPredicate(predicate).firstObject();
 }
 
-function getValuesForKey(source,key) {
-	var array = NSMutableArray.array(),
-		loop = source.objectEnumerator(),
-		object;
+function getSettings(context,location,settings) {
+	try {
+		for (i in settings) {
+			var value = context.command.valueForKey_onLayer(i,location);
+			if (value) settings[i] = value;
+		}
 
-	while (object = loop.nextObject()) {
-		array.push(object[key]());
+		return settings;
+	} catch(err) {
+		log("Unable to fetch settings");
+	}
+}
+
+function googleAnalytics(context,category,action,label,value) {
+	var trackingID = "UA-117546302-1",
+		uuidKey = "google.analytics.uuid",
+		uuid = NSUserDefaults.standardUserDefaults().objectForKey(uuidKey);
+
+	if (!uuid) {
+		uuid = NSUUID.UUID().UUIDString();
+		NSUserDefaults.standardUserDefaults().setObject_forKey(uuid,uuidKey);
 	}
 
-	return array;
+	var url = "https://www.google-analytics.com/collect?v=1";
+	// Tracking ID
+	url += "&tid=" + trackingID;
+	// Source
+	url += "&ds=sketch" + MSApplicationMetadata.metadata().appVersion;
+	// Client ID
+	url += "&cid=" + uuid;
+	// pageview, screenview, event, transaction, item, social, exception, timing
+	url += "&t=event";
+	// App Name
+	url += "&an=" + encodeURI(context.plugin.name());
+	// App ID
+	url += "&aid=" + context.plugin.identifier();
+	// App Version
+	url += "&av=" + context.plugin.version();
+	// Event category
+	url += "&ec=" + encodeURI(category);
+	// Event action
+	url += "&ea=" + encodeURI(action);
+	// Event label
+	if (label) {
+		url += "&el=" + encodeURI(label);
+	}
+	// Event value
+	if (value) {
+		url += "&ev=" + encodeURI(value);
+	}
+
+	var session = NSURLSession.sharedSession(),
+		task = session.dataTaskWithURL(NSURL.URLWithString(NSString.stringWithString(url)));
+
+	task.resume();
 }
 
 function openFile(path) {
@@ -408,7 +464,11 @@ function openFile(path) {
 	return (file.readFromURL_ofType_error(path,'com.bohemiancoding.sketch.drawing',nil)) ? file : nil;
 }
 
-function removeFrameOrphans(context) {
+function openUrl(url) {
+	NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(url));
+}
+
+function removeOrphans(context) {
 	var frames = frameGroup.layers(),
 		framesRemoved = 0;
 
@@ -439,7 +499,7 @@ function setKeyOrder(alert,order) {
 	alert.alert().window().setInitialFirstResponder(order[0]);
 }
 
-function updateFramePositions(context) {
+function updateFrames(context) {
 	var frames = frameGroup.layers(),
 		frameLoop = frames.objectEnumerator(),
 		frame;
@@ -451,55 +511,12 @@ function updateFramePositions(context) {
 
 		frame.absoluteRect().setX(linkedArtboard.frame().x() + context.command.valueForKey_onLayer("offsetX",frameSymbol));
 		frame.absoluteRect().setY(linkedArtboard.frame().y() + context.command.valueForKey_onLayer("offsetY",frameSymbol));
+
+		if (context.command.valueForKey_onLayer("canResize",frameSymbol)) {
+			frame.frame().setWidth(linkedArtboard.frame().width() - context.command.valueForKey_onLayer("offsetX",frameSymbol))
+			frame.frame().setHeight(linkedArtboard.frame().height() - context.command.valueForKey_onLayer("offsetY",frameSymbol))
+		}
 	}
 
 	frameGroup.resizeToFitChildrenWithOption(0);
-}
-
-function openUrlInBrowser(url) {
-	NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(url));
-}
-
-function ga(context,eventCategory,eventAction,eventLabel,eventValue) {
-	var trackingID = "UA-117546302-1",
-		uuidKey = "google.analytics.uuid",
-		uuid = NSUserDefaults.standardUserDefaults().objectForKey(uuidKey);
-
-	if (!uuid) {
-		uuid = NSUUID.UUID().UUIDString();
-		NSUserDefaults.standardUserDefaults().setObject_forKey(uuid,uuidKey);
-	}
-
-	var url = "https://www.google-analytics.com/collect?v=1";
-	// Tracking ID
-	url += "&tid=" + trackingID;
-	// Source
-	url += "&ds=sketch" + MSApplicationMetadata.metadata().appVersion;
-	// Client ID
-	url += "&cid=" + uuid;
-	// pageview, screenview, event, transaction, item, social, exception, timing
-	url += "&t=event";
-	// App Name
-	url += "&an=" + encodeURI(context.plugin.name());
-	// App ID
-	url += "&aid=" + context.plugin.identifier();
-	// App Version
-	url += "&av=" + context.plugin.version();
-	// Event category
-	url += "&ec=" + encodeURI(eventCategory);
-	// Event action
-	url += "&ea=" + encodeURI(eventAction);
-	// Event label
-	if (eventLabel) {
-		url += "&el=" + encodeURI(eventLabel);
-	}
-	// Event value
-	if (eventValue) {
-		url += "&ev=" + encodeURI(eventValue);
-	}
-
-	var session = NSURLSession.sharedSession(),
-		task = session.dataTaskWithURL(NSURL.URLWithString(NSString.stringWithString(url)));
-
-	task.resume();
 }

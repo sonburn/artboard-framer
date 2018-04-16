@@ -6,15 +6,15 @@
 		<description>Frame your artboards with a device image or wireframe.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.6</title>
+			<title>Version 0.7</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Added iPhone X and Samsung Galaxy S8.</li>
+				<li>Added web browser frames which resize to the artboards for which they are applied.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.6" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.7" />
 		</item>
 	</channel>
 </rss>
