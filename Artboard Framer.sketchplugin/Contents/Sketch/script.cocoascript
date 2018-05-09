@@ -94,10 +94,39 @@ function createFrames(context,artboards) {
 		// Set the frame group
 		frameGroup = getFrameGroup(context);
 
+		// Get existing foreign symbols
+		var foreignSymbols = context.document.documentData().foreignSymbols(),
+			foreignSymbolLoop = foreignSymbols.objectEnumerator(),
+			foreignSymbol,
+			foreignSymbolExists = false;
+
+		// Iterate through the foreign symbols...
+		while (foreignSymbol = foreignSymbolLoop.nextObject()) {
+			// If no match has been found yet, and the foreign symbol matches the frame symbol...
+			if (!foreignSymbolExists && foreignSymbol.originalMaster().symbolID() == frameSettings.frame.symbolID().trim()) {
+				// Indicate a match was found
+				foreignSymbolExists = true;
+
+				// Set frame symbol
+				frameSymbol = foreignSymbol.symbolMaster();
+			}
+		}
+
+		// If the frame symbol does not exist in foreign symbols...
+		if (!foreignSymbolExists) {
+			// Get frame symbol object from library
+			frameSymbol = MSForeignSymbol.foreignSymbolWithMaster_inLibrary(frameSymbol,frameLibrary);
+
+			// Add frame symbol to foreign symbols
+			context.document.documentData().addForeignSymbol(frameSymbol);
+
+			// Set frame symbol
+			frameSymbol = context.document.documentData().foreignSymbols().lastObject();
+		}
+
 		// Artboard & frame variables
 		var artboardLoop = artboards.objectEnumerator(),
 			artboard,
-			frameSymbol = context.document.localSymbolForSymbol_inLibrary(frameSymbol,frameLibrary),
 			framesAdded = 0,
 			framesUpdated = 0,
 			framesRemoved = removeOrphans(context);

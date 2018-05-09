@@ -6,15 +6,15 @@
 		<description>Frame your artboards with a device image or wireframe.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.8</title>
+			<title>Version 0.9</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Added plugin icon to manifest for Sketch 50.</li>
+				<li>Fix for localSymbolForSymbol_inLibrary being deprecated in Sketch 50.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.8" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.9" />
 		</item>
 	</channel>
 </rss>
