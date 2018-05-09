@@ -39,6 +39,7 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.8** - Added plugin icon to manifest for Sketch 50.
 * **0.7** - Added web browser frames which resize to the artboards for which they are applied.
 * **0.6** - Added iPhone X and Samsung Galaxy S8.
 * **0.5** - Added functionality to create a slice around artboard frames.
