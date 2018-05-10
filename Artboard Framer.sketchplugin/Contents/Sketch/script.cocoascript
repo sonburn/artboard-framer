@@ -94,39 +94,10 @@ function createFrames(context,artboards) {
 		// Set the frame group
 		frameGroup = getFrameGroup(context);
 
-		// Get existing foreign symbols
-		var foreignSymbols = context.document.documentData().foreignSymbols(),
-			foreignSymbolLoop = foreignSymbols.objectEnumerator(),
-			foreignSymbol,
-			foreignSymbolExists = false;
-
-		// Iterate through the foreign symbols...
-		while (foreignSymbol = foreignSymbolLoop.nextObject()) {
-			// If no match has been found yet, and the foreign symbol matches the frame symbol...
-			if (!foreignSymbolExists && foreignSymbol.originalMaster().symbolID() == frameSettings.frame.symbolID().trim()) {
-				// Indicate a match was found
-				foreignSymbolExists = true;
-
-				// Set frame symbol
-				frameSymbol = foreignSymbol.symbolMaster();
-			}
-		}
-
-		// If the frame symbol does not exist in foreign symbols...
-		if (!foreignSymbolExists) {
-			// Get frame symbol object from library
-			frameSymbol = MSForeignSymbol.foreignSymbolWithMaster_inLibrary(frameSymbol,frameLibrary);
-
-			// Add frame symbol to foreign symbols
-			context.document.documentData().addForeignSymbol(frameSymbol);
-
-			// Set frame symbol
-			frameSymbol = context.document.documentData().foreignSymbols().lastObject();
-		}
-
 		// Artboard & frame variables
 		var artboardLoop = artboards.objectEnumerator(),
 			artboard,
+			frameSymbol = importForeignSymbol(frameSymbol,frameLibrary).symbolMaster(),
 			framesAdded = 0,
 			framesUpdated = 0,
 			framesRemoved = removeOrphans(context);
@@ -485,6 +456,22 @@ function googleAnalytics(context,category,action,label,value) {
 		task = session.dataTaskWithURL(NSURL.URLWithString(NSString.stringWithString(url)));
 
 	task.resume();
+}
+
+function importForeignSymbol(symbol,library) {
+	var intoDocument = MSDocument.currentDocument().documentData(),
+		libraryController = AppController.sharedInstance().librariesController(),
+		foreignSymbol;
+
+	if (MSApplicationMetadata.metadata().appVersion >= 50) {
+		var objectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol,library);
+
+		foreignSymbol = libraryController.importShareableObjectReference_intoDocument(objectReference,intoDocument);
+	} else {
+		foreignSymbol = libraryController.importForeignSymbol_fromLibrary_intoDocument_(symbol,library,intoDocument);
+	}
+
+	return foreignSymbol;
 }
 
 function openFile(path) {

@@ -24,6 +24,12 @@
 			"handler": "report"
 		},
 		{
+			"name": "Other Plugins",
+			"identifier": "plugins",
+			"script" : "script.cocoascript",
+			"handler": "plugins"
+		},
+		{
 			"name": "Donate",
 			"identifier": "donate",
 			"script" : "script.cocoascript",
@@ -38,11 +44,12 @@
 			"frameSelected",
 			"-",
 			"report",
+			"plugins",
 			"donate"
 		]
 	},
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.9",
+	"version" : "0.10",
 	"description" : "Frame your artboards with a device image or wireframe.",
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",
