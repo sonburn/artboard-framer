@@ -54,5 +54,6 @@
 	"authorEmail" : "jason.burns@synchronoss.com",
 	"name" : "Artboard Framer",
 	"icon" : "icon.png",
-	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml"
+	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml",
+	"homepage" : "https://github.com/sonburn/artboard-framer"
 }
