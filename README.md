@@ -39,6 +39,7 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.11** - Fix for Sketch 53.
 * **0.10** - Utilizing MSShareableObjectReference for importing in Sketch 50, reinstated old method for previous versions of Sketch.
 * **0.9** - Fix for localSymbolForSymbol_inLibrary being deprecated in Sketch 50.
 * **0.8** - Added plugin icon to manifest for Sketch 50.
@@ -52,10 +53,11 @@ To find your plugins directory...
 
 # To-Do
 
-* Add functionality to wrap frames in slice for exporting.
+* Host device library for easier updating.
 * Add landscape mode phone and tablet devices.
 * Add watch devices.
 * Add web devices.
+* Add more modern devices.
 * Pre-select type for artboard size(s).
 
 # Contact
@@ -68,4 +70,4 @@ If you find this plugin helpful, or would like to support my plugins in general,
 
 # License
 
-Copyright (c) 2018 Jason Burns (Sonburn). See LICENSE.md for further details.
+Copyright (c) 2019 Jason Burns (Sonburn). See LICENSE.md for further details.

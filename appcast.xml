@@ -6,15 +6,15 @@
 		<description>Frame your artboards with a device image or wireframe.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.10</title>
+			<title>Version 0.11</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Utilizing MSShareableObjectReference for importing in Sketch 50, reinstated old method for previous versions of Sketch.</li>
+				<li>Fix for Sketch 53.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.10" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.11" />
 		</item>
 	</channel>
 </rss>

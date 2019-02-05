@@ -1,44 +1,48 @@
 {
+	"name" : "Artboard Framer",
+	"description" : "Frame your artboards with a device image or wireframe.",
 	"author" : "Jason Burns",
+	"homepage" : "https://github.com/sonburn/artboard-framer",
+	"version" : "0.11",
+	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
+	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml",
+	"icon" : "icon.png",
 	"commands" : [
 		{
 			"name" : "Frame All Artboards",
 			"identifier" : "frameAll",
 			"description" : "Frame all artboards with a device image or wireframe.",
-			"script" : "script.cocoascript",
-			"icon" : "icon-sr.png",
+			"script" : "script.js",
 			"handler" : "frameAll"
 		},
 		{
 			"name" : "Frame Selected Artboards",
 			"identifier" : "frameSelected",
 			"description" : "Frame selected artboards with a device image or wireframe.",
-			"script" : "script.cocoascript",
-			"icon" : "icon-sr.png",
+			"script" : "script.js",
 			"handler" : "frameSelected"
 		},
 		{
 			"name": "Request Frame/Report Issue",
 			"identifier": "report",
-			"script" : "script.cocoascript",
+			"script" : "script.js",
 			"handler": "report"
 		},
 		{
 			"name": "Other Plugins",
 			"identifier": "plugins",
-			"script" : "script.cocoascript",
+			"script" : "script.js",
 			"handler": "plugins"
 		},
 		{
 			"name": "Donate",
 			"identifier": "donate",
-			"script" : "script.cocoascript",
+			"script" : "script.js",
 			"handler": "donate"
 		}
 	],
 	"menu" : {
 		"title" : "Artboard Framer",
-		"isRoot" : false,
 		"items" : [
 			"frameAll",
 			"frameSelected",
@@ -47,13 +51,5 @@
 			"plugins",
 			"donate"
 		]
-	},
-	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
-	"version" : "0.10",
-	"description" : "Frame your artboards with a device image or wireframe.",
-	"authorEmail" : "jason.burns@synchronoss.com",
-	"name" : "Artboard Framer",
-	"icon" : "icon.png",
-	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml",
-	"homepage" : "https://github.com/sonburn/artboard-framer"
+	}
 }

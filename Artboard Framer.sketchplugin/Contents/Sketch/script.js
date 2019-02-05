@@ -1,4 +1,6 @@
-@import "MochaJSDelegate.js";
+@import "delegate.js";
+
+var sketch = require("sketch");
 
 // Plugin variables
 var pluginName = "Artboard Framer",
@@ -7,7 +9,7 @@ var pluginName = "Artboard Framer",
 	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
 	frameLibrary,
 	frameGroup,
-	debugMode = false;
+	debugMode = true;
 
 var frameAll = function(context) {
 	// Get artboards on current page
@@ -168,7 +170,11 @@ function createFrames(context,artboards) {
 			sliceLayer.frame().setHeight(frameGroup.frame().height() + frameSlicePad * 2);
 
 			// Resize the frame group
-			frameGroup.resizeToFitChildrenWithOption(0);
+			if (sketch.version.sketch > 52) {
+				frameGroup.fixGeometryWithOptions(0);
+			} else {
+				frameGroup.resizeToFitChildrenWithOption(0);
+			}
 		}
 
 		// Display feedback
@@ -534,5 +540,9 @@ function updateFrames(context) {
 		}
 	}
 
-	frameGroup.resizeToFitChildrenWithOption(0);
+	if (sketch.version.sketch > 52) {
+		frameGroup.fixGeometryWithOptions(0);
+	} else {
+		frameGroup.resizeToFitChildrenWithOption(0);
+	}
 }
