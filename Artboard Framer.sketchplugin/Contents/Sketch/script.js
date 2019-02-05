@@ -9,7 +9,7 @@ var pluginName = "Artboard Framer",
 	frameLibraryID = "D16D094A-4631-43DB-A362-B9D66057F333",
 	frameLibrary,
 	frameGroup,
-	debugMode = true;
+	debugMode = false;
 
 var frameAll = function(context) {
 	// Get artboards on current page
