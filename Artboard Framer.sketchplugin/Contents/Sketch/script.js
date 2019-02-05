@@ -51,12 +51,18 @@ var frameSelected = function(context) {
 var report = function(context) {
 	openUrl("https://github.com/sonburn/artboard-framer/issues/new");
 	if (!debugMode) googleAnalytics(context,"report","report");
-};
+}
+
+var plugins = function(context) {
+	openUrl("https://sonburn.github.io/");
+
+	if (!debugMode) googleAnalytics(context,"plugins","plugins");
+}
 
 var donate = function(context) {
 	openUrl("https://www.paypal.me/sonburn");
 	if (!debugMode) googleAnalytics(context,"donate","donate");
-};
+}
 
 function actionWithType(context,type) {
 	var controller = context.document.actionsController();

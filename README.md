@@ -39,6 +39,7 @@ To find your plugins directory...
 
 # Changelog
 
+* **0.12** - Fixed link for Other Plugins.
 * **0.11** - Fix for Sketch 53.
 * **0.10** - Utilizing MSShareableObjectReference for importing in Sketch 50, reinstated old method for previous versions of Sketch.
 * **0.9** - Fix for localSymbolForSymbol_inLibrary being deprecated in Sketch 50.
