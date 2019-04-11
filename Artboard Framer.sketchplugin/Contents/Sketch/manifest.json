@@ -11,6 +11,7 @@
 		{
 			"name" : "Frame All Artboards",
 			"identifier" : "frameAll",
+			"icon": "icon.png",
 			"description" : "Frame all artboards with a device image or wireframe.",
 			"script" : "script.js",
 			"handler" : "frameAll"
@@ -18,6 +19,7 @@
 		{
 			"name" : "Frame Selected Artboards",
 			"identifier" : "frameSelected",
+			"icon": "icon.png",
 			"description" : "Frame selected artboards with a device image or wireframe.",
 			"script" : "script.js",
 			"handler" : "frameSelected"
@@ -25,18 +27,21 @@
 		{
 			"name": "Request Frame/Report Issue",
 			"identifier": "report",
+			"icon": "icon.png",
 			"script" : "script.js",
 			"handler": "report"
 		},
 		{
 			"name": "Other Plugins",
 			"identifier": "plugins",
+			"icon": "icon.png",
 			"script" : "script.js",
 			"handler": "plugins"
 		},
 		{
 			"name": "Donate",
 			"identifier": "donate",
+			"icon": "icon.png",
 			"script" : "script.js",
 			"handler": "donate"
 		}
