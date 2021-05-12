@@ -3,7 +3,7 @@
 	"description" : "Frame your artboards with a device image or wireframe.",
 	"author" : "Jason Burns",
 	"homepage" : "https://github.com/sonburn/artboard-framer",
-	"version" : "0.12",
+	"version" : "0.13",
 	"identifier" : "com.sonburn.sketchplugins.artboard-framer",
 	"appcast" : "https://raw.githubusercontent.com/sonburn/artboard-framer/master/appcast.xml",
 	"icon" : "icon.png",

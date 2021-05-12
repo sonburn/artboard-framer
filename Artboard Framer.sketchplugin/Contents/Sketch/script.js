@@ -391,7 +391,7 @@ function getFrameSettings(context) {
 }
 
 function getLibraryData(context,library) {
-	var libraryPath = library.locationOnDisk().path(),
+	var libraryPath = NSURL.fileURLWithPath(library.locationOnDisk().path()),
 		libraryFile = openFile(libraryPath),
 		libraryPages = libraryFile.documentData().pages(),
 		librarySymbols = libraryFile.documentData().allSymbols(),
@@ -440,7 +440,7 @@ function googleAnalytics(context,category,action,label,value) {
 	// Tracking ID
 	url += "&tid=" + trackingID;
 	// Source
-	url += "&ds=sketch" + MSApplicationMetadata.metadata().appVersion;
+	url += "&ds=sketch" + sketch.version.sketch;
 	// Client ID
 	url += "&cid=" + uuid;
 	// pageview, screenview, event, transaction, item, social, exception, timing
@@ -475,7 +475,7 @@ function importForeignSymbol(symbol,library) {
 		libraryController = AppController.sharedInstance().librariesController(),
 		foreignSymbol;
 
-	if (MSApplicationMetadata.metadata().appVersion >= 50) {
+	if (sketch.version.sketch >= 50) {
 		var objectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol,library);
 
 		foreignSymbol = libraryController.importShareableObjectReference_intoDocument(objectReference,intoDocument);

@@ -6,15 +6,15 @@
 		<description>Frame your artboards with a device image or wireframe.</description>
 		<language>en</language>
 		<item>
-			<title>Version 0.12</title>
+			<title>Version 0.13</title>
 			<description>
 				<![CDATA[
 				<ul>
-				<li>Fixed link for Other Plugins.</li>
+				<li>Fix for plugin window not appearing. Fix for Sketch 72.</li>
 				</ul>
 				]]>
 			</description>
-			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.12" />
+			<enclosure url="https://github.com/sonburn/artboard-framer/archive/master.zip" sparkle:version="0.13" />
 		</item>
 	</channel>
 </rss>
